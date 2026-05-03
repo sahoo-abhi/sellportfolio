@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: 139, 92, 246;
+    --accent-hex: #8B5CF6;
+    --bg: #04040d;
+    --text-primary: rgba(255,255,255,0.92);
+    --text-secondary: rgba(255,255,255,0.45);
+    --text-muted: rgba(255,255,255,0.18);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── STAR CANVAS ── */
+  #star-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(var(--accent),0.14) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(var(--accent),0.7);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 1s 0.3s forwards;
+  }
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    opacity: 0;
+    animation: fadeUp 1s 0.5s forwards;
+  }
+  .hero-title em { font-style: normal; color: rgba(var(--accent),0.9); }
+  .hero-sub {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 420px;
+    line-height: 1.7;
+    opacity: 0;
+    animation: fadeUp 1s 0.7s forwards;
+  }
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 1s 1.2s forwards;
+  }
+  .scroll-hint { gap: 14px; }
+  .scroll-hint-label {
+    position: relative;
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: transparent;
+    overflow: hidden;
+  }
+  .scroll-hint-label::before {
+    content: 'scroll to explore';
+    position: absolute; inset: 0;
+    color: var(--text-muted);
+  }
+  .scroll-hint-label::after {
+    content: 'scroll to explore';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(var(--accent),0.9) 40%, white 55%, rgba(var(--accent),0.9) 70%, transparent 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 220% 100%;
+    animation: shimmerText 2.8s ease-in-out infinite;
+  }
+  @keyframes shimmerText {
+    0%   { background-position: 200% center; }
+    100% { background-position: -40% center; }
+  }
+
+  .scroll-mouse {
+    width: 22px; height: 34px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    position: relative;
+    display: flex; justify-content: center;
+  }
+  .scroll-mouse::after {
+    content: '';
+    width: 3px; height: 7px;
+    background: rgba(var(--accent), 0.9);
+    border-radius: 2px;
+    position: absolute;
+    top: 6px;
+    animation: mouseWheel 1.8s ease-in-out infinite;
+    box-shadow: 0 0 6px rgba(var(--accent),0.8);
+  }
+  @keyframes mouseWheel {
+    0%   { top: 6px; opacity: 1; }
+    60%  { top: 16px; opacity: 0.2; }
+    61%  { top: 6px; opacity: 0; }
+    100% { top: 6px; opacity: 1; }
+  }
+
+  .scroll-chevrons {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .scroll-chevrons span {
+    display: block; width: 10px; height: 10px;
+    border-right: 1.5px solid rgba(var(--accent),0.8);
+    border-bottom: 1.5px solid rgba(var(--accent),0.8);
+    transform: rotate(45deg);
+    animation: chevronFade 1.8s ease-in-out infinite;
+  }
+  .scroll-chevrons span:nth-child(1) { animation-delay: 0s;    opacity: 0.3; }
+  .scroll-chevrons span:nth-child(2) { animation-delay: 0.2s;  opacity: 0.3; }
+  .scroll-chevrons span:nth-child(3) { animation-delay: 0.4s;  opacity: 0.3; }
+  @keyframes chevronFade {
+    0%,100% { opacity: 0.15; }
+    50%      { opacity: 0.9; }
+  }
+
+  /* ── TIMELINE SECTION ── */
+  #timeline {
+    position: relative;
+    padding: 8rem 0 12rem;
+    z-index: 1;
+  }
+
+  /* ── NEBULA BLOBS ── */
+  .nebula {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+    opacity: 0.07;
+    z-index: 0;
+  }
+
+  /* ── SPINE ── */
+  .spine-track {
+    position: absolute;
+    left: 50%;
+    top: 0; bottom: 0;
+    width: 2px;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+  .spine-base { position: absolute; inset: 0; background: rgba(255,255,255,0.05); border-radius: 2px; }
+  .spine-drawn {
+    position: absolute; top: 0; left: 0; right: 0; height: 0;
+    background: linear-gradient(to bottom, rgba(var(--accent),1) 0%, rgba(var(--accent),0.65) 60%, rgba(255,255,255,0.95) 100%);
+    border-radius: 2px;
+  }
+  .spine-nib {
+    position: absolute;
+    left: 50%; transform: translateX(-50%) translateY(-50%);
+    width: 4px; height: 20px;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 0 14px 5px rgba(var(--accent),0.95), 0 0 30px 10px rgba(var(--accent),0.35);
+    transition: top 0.04s linear;
+  }
+
+  /* ── MILESTONE ── */
+  .milestone {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    align-items: start;
+    min-height: 220px;
+    padding: 0 max(2rem, calc(50% - 560px));
+    margin-bottom: 2rem;
+    z-index: 3;
+  }
+  .milestone:nth-child(odd)  .ms-card  { grid-column: 1; text-align: right; }
+  .milestone:nth-child(odd)  .ms-spine { grid-column: 2; }
+  .milestone:nth-child(odd)  .ms-empty { grid-column: 3; }
+  .milestone:nth-child(even) .ms-empty { grid-column: 1; }
+  .milestone:nth-child(even) .ms-spine { grid-column: 2; }
+  .milestone:nth-child(even) .ms-card  { grid-column: 3; text-align: left; }
+  .ms-spine { display: flex; justify-content: center; padding-top: 32px; position: relative; }
+
+  /* ── NODE ── */
+  .node { position: relative; width: 14px; height: 14px; flex-shrink: 0; }
+  .node-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.14);
+    transition: border-color 0.4s ease;
+  }
+  .node-fill {
+    position: absolute; inset: 2px; border-radius: 50%;
+    background: rgba(var(--accent),1);
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .node-pulse {
+    position: absolute; inset: -6px; border-radius: 50%;
+    border: 1.5px solid rgba(var(--accent),0.6);
+    opacity: 0; pointer-events: none;
+  }
+  .node-glow {
+    position: absolute; inset: -8px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent),0.4) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .node.active .node-ring  { border-color: rgba(var(--accent),0.9); }
+  .node.active .node-fill  { transform: scale(1); }
+  .node.active .node-glow  { opacity: 1; }
+  .node.active .node-pulse { animation: pulseRing 700ms ease-out forwards; }
+  @keyframes pulseRing {
+    0%   { transform: scale(1); opacity: 1; }
+    100% { transform: scale(3.5); opacity: 0; }
+  }
+
+  /* ── CARD ── */
+  .ms-card { padding: 0 1.5rem; padding-top: 24px; opacity: 0; will-change: transform, opacity; }
+  .milestone:nth-child(odd)  .ms-card { transform: translateX(-28px); }
+  .milestone:nth-child(even) .ms-card { transform: translateX(28px); }
+  .ms-card.arrived {
+    opacity: 1; transform: translateX(0);
+    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .card-year {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(var(--accent),0.7); margin-bottom: 0.5rem; font-weight: 500;
+  }
+  .card-title { font-size: 1.15rem; font-weight: 500; line-height: 1.3; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
+  .card-body { font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary); max-width: 300px; }
+  .milestone:nth-child(odd) .card-body { margin-left: auto; }
+  .card-tag {
+    display: inline-block; margin-top: 0.75rem;
+    padding: 3px 10px; border-radius: 20px;
+    border: 1px solid rgba(var(--accent),0.25);
+    font-size: 11px; letter-spacing: 0.08em;
+    color: rgba(var(--accent),0.7); background: rgba(var(--accent),0.07);
+  }
+
+  /* ── YEAR GHOST ── */
+  .year-float {
+    position: absolute;
+    font-size: clamp(5rem, 12vw, 9rem);
+    font-weight: 700; letter-spacing: -0.05em;
+    color: rgba(255,255,255,0.022);
+    pointer-events: none; user-select: none;
+    will-change: transform; z-index: 0; line-height: 1;
+  }
+
+  /* ── CONNECTOR ── */
+  .ms-connector {
+    position: absolute; top: 38px; height: 1px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease 0.3s;
+  }
+  .milestone:nth-child(odd)  .ms-connector { right: calc(50% + 40px); left: 0; background: linear-gradient(to left, transparent, rgba(var(--accent),0.18), transparent); }
+  .milestone:nth-child(even) .ms-connector { left: calc(50% + 40px); right: 0; background: linear-gradient(to right, transparent, rgba(var(--accent),0.18), transparent); }
+  .ms-card.arrived + .node .ms-connector { opacity: 1; }
+  .node.active ~ .ms-connector { opacity: 1; }
+
+  /* ── FOOTER ── */
+  .timeline-end {
+    text-align: center; padding: 4rem 2rem 8rem;
+    color: var(--text-muted); font-size: 0.875rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    position: relative; z-index: 2;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 680px) {
+    .spine-track { left: 40px; transform: none; }
+    .milestone { grid-template-columns: 60px 1fr; padding: 0 1.25rem; min-height: 160px; margin-bottom: 0; }
+    .milestone:nth-child(odd) .ms-card,
+    .milestone:nth-child(even) .ms-card  { grid-column: 2; grid-row: 1; text-align: left; transform: translateX(20px); }
+    .milestone:nth-child(odd) .ms-spine,
+    .milestone:nth-child(even) .ms-spine { grid-column: 1; grid-row: 1; justify-content: flex-end; padding-right: 18px; }
+    .milestone:nth-child(odd) .ms-empty,
+    .milestone:nth-child(even) .ms-empty { display: none; }
+    .card-body { max-width: none; }
+    .ms-connector, .year-float { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+
+<section class="hero">
+  <p class="hero-eyebrow">The story so far</p>
+  <h1 class="hero-title">A decade of<br><em>making things</em></h1>
+  <p class="hero-sub">Scroll to travel through the milestones that shaped a practice built on craft, curiosity, and the relentless pursuit of the right thing.</p>
+  <div class="scroll-hint">
+    <div class="scroll-hint-label">scroll to explore</div>
+    <div class="scroll-mouse"></div>
+    <div class="scroll-chevrons">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</section>
+
+<section id="timeline">
+  <!-- nebula blobs -->
+  <div class="nebula" style="width:600px;height:600px;background:rgba(var(--accent),1);top:5%;left:-10%;"></div>
+  <div class="nebula" style="width:500px;height:500px;background:#1a4fff;top:35%;right:-8%;"></div>
+  <div class="nebula" style="width:700px;height:400px;background:rgba(var(--accent),1);top:65%;left:20%;"></div>
+
+  <div class="spine-track">
+    <div class="spine-base"></div>
+    <div class="spine-drawn" id="spineDrawn"></div>
+    <div class="spine-nib" id="spineNib"></div>
+  </div>
+
+  <div id="milestones-wrap"></div>
+  <div class="timeline-end">Present day</div>
+</section>
+
+<script>
+/* ─── DATA ─── */
+const MILESTONES = [
+  { year:"2015", title:"First client. First all-nighter.", body:"A local architecture firm needed a website. We delivered something that won a regional design award. The studio was officially alive.", tag:"Origins" },
+  { year:"2016", title:"The brief that changed everything", body:"A Fortune 500 brief landed asking for scroll-driven storytelling. Three weeks of prototyping later, we had a new vocabulary for the web.", tag:"Breakthrough" },
+  { year:"2017", title:"Awwwards Site of the Day ×3", body:"Three wins in eight months. The recognition brought projects we hadn't dreamed of—and a discipline around craft that never left.", tag:"Recognition" },
+  { year:"2018", title:"The team becomes a studio", body:"Solo practice gave way to a team of seven. Processes, rituals, design principles—building the culture that would outlast any single project.", tag:"Growth" },
+  { year:"2019", title:"Stripe selects our timeline work", body:"The intersection of data visualization and emotion. Stripe's developer showcase featured our animated product timeline as a reference implementation.", tag:"Milestone" },
+  { year:"2020", title:"Remote, distributed, still shipping", body:"The year the world pivoted. We rebuilt our collaboration rituals in weeks and delivered more in twelve months than the prior two years combined.", tag:"Resilience" },
+  { year:"2021", title:"Linear invites us in", body:"An eighteen-month engagement embedding with the Linear product team. Precision tools for precise people. Every pixel earned its place.", tag:"Partnership" },
+  { year:"2022", title:"Apple Developer Showcase", body:"Motion work featured in the Apple Developer Showcase during WWDC. The phone calls from Cupertino still feel unreal.", tag:"Peak" },
+  { year:"2023", title:"Fourteen. Site of the Day.", body:"Awwwards #14. The number matters less than the standard it represents—a team still unwilling to let good enough be enough.", tag:"Craft" },
+  { year:"2024", title:"What comes next", body:"New tools, new collaborators, same obsession. The journey of making things that feel inevitable continues.", tag:"Now" }
+];
+
+/* ─── BUILD MILESTONES ─── */
+const wrap = document.getElementById('milestones-wrap');
+MILESTONES.forEach((m, i) => {
+  const ms = document.createElement('div');
+  ms.className = 'milestone';
+  const card = `<div class="ms-card" data-card="${i}">
+    <div class="card-year">${m.year}</div>
+    <div class="card-title">${m.title}</div>
+    <div class="card-body">${m.body}</div>
+    <span class="card-tag">${m.tag}</span>
+  </div>`;
+  const spineCol = `<div class="ms-spine">
+    <div class="node" data-node="${i}">
+      <div class="node-glow"></div>
+      <div class="node-ring"></div>
+      <div class="node-fill"></div>
+      <div class="node-pulse"></div>
+    </div>
+    <div class="ms-connector"></div>
+  </div>`;
+  const empty = `<div class="ms-empty"></div>`;
+  ms.innerHTML = i % 2 === 0 ? card + spineCol + empty : empty + spineCol + card;
+
+  const yf = document.createElement('div');
+  yf.className = 'year-float';
+  yf.textContent = m.year;
+  yf.style.cssText = i % 2 === 0 ? `right:calc(50% + 80px);top:0` : `left:calc(50% + 80px);top:0`;
+  ms.appendChild(yf);
+  wrap.appendChild(ms);
+});
+
+/* ─── STAR & COMET CANVAS ─── */
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [], comets = [];
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+}
+
+function mkStar() {
+  return {
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: Math.random() * 1.4 + 0.2,
+    base: Math.random() * 0.7 + 0.1,
+    phase: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.008 + 0.003,
+    color: Math.random() < 0.15
+      ? `rgba(180,160,255,`   // purple-tinted
+      : Math.random() < 0.1
+        ? `rgba(180,220,255,` // blue-tinted
+        : `rgba(255,255,255,`
+  };
+}
+
+function initStars() {
+  const count = Math.min(320, Math.floor(W * H / 5000));
+  stars = Array.from({length: count}, mkStar);
+}
+
+/* Comet factory */
+function mkComet() {
+  const fromTop = Math.random() < 0.5;
+  const angle = (Math.random() * 30 + 20) * Math.PI / 180;
+  const speed = Math.random() * 4 + 3;
+  return {
+    x: Math.random() * W,
+    y: fromTop ? -20 : H + 20,
+    vx: speed * Math.cos(angle) * (Math.random() < 0.5 ? 1 : -1),
+    vy: fromTop ? speed * Math.sin(angle) : -speed * Math.sin(angle),
+    len: Math.random() * 140 + 80,
+    alpha: Math.random() * 0.5 + 0.4,
+    width: Math.random() * 1.2 + 0.4,
+    life: 0,
+    maxLife: Math.random() * 90 + 60
+  };
+}
+
+function spawnComet() {
+  if (comets.length < 4) comets.push(mkComet());
+}
+
+let lastComet = 0;
+let frame = 0;
+let scrollY = 0;
+
+function drawFrame(ts) {
+  ctx.clearRect(0, 0, W, H);
+
+  /* parallax offset: stars drift slightly as user scrolls */
+  const scrollOff = scrollY * 0.12;
+
+  /* ── draw stars ── */
+  stars.forEach(s => {
+    const flicker = s.base + Math.sin(ts * s.speed + s.phase) * 0.18;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y - scrollOff * (s.r / 1.6), s.r, 0, Math.PI * 2);
+    ctx.fillStyle = s.color + Math.min(1, flicker) + ')';
+    ctx.fill();
+
+    /* tiny 4-point cross for bigger stars */
+    if (s.r > 1.1) {
+      const sz = s.r * 2.5;
+      ctx.strokeStyle = s.color + (flicker * 0.4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(s.x - sz, s.y - scrollOff * (s.r / 1.6));
+      ctx.lineTo(s.x + sz, s.y - scrollOff * (s.r / 1.6));
+      ctx.moveTo(s.x, s.y - scrollOff * (s.r / 1.6) - sz);
+      ctx.lineTo(s.x, s.y - scrollOff * (s.r / 1.6) + sz);
+      ctx.stroke();
+    }
+  });
+
+  /* ── spawn comets periodically ── */
+  if (ts - lastComet > 2800 + Math.random() * 2000) {
+    spawnComet();
+    lastComet = ts;
+  }
+
+  /* ── draw comets ── */
+  comets = comets.filter(c => {
+    c.x += c.vx;
+    c.y += c.vy;
+    c.life++;
+    if (c.life > c.maxLife || c.x < -200 || c.x > W + 200 || c.y < -200 || c.y > H + 200) return false;
+
+    const fade = c.life < 12 ? c.life / 12 : c.life > c.maxLife - 20 ? (c.maxLife - c.life) / 20 : 1;
+    const tailX = c.x - c.vx * (c.len / Math.hypot(c.vx, c.vy));
+    const tailY = c.y - c.vy * (c.len / Math.hypot(c.vx, c.vy));
+
+    /* tail gradient */
+    const grad = ctx.createLinearGradient(tailX, tailY - scrollOff * 0.05, c.x, c.y - scrollOff * 0.05);
+    grad.addColorStop(0, `rgba(255,255,255,0)`);
+    grad.addColorStop(0.6, `rgba(200,180,255,${c.alpha * fade * 0.4})`);
+    grad.addColorStop(1, `rgba(255,255,255,${c.alpha * fade})`);
+
+    ctx.beginPath();
+    ctx.moveTo(tailX, tailY - scrollOff * 0.05);
+    ctx.lineTo(c.x, c.y - scrollOff * 0.05);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = c.width;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    /* head glow */
+    const grd = ctx.createRadialGradient(c.x, c.y - scrollOff * 0.05, 0, c.x, c.y - scrollOff * 0.05, 6);
+    grd.addColorStop(0, `rgba(255,255,255,${0.9 * fade})`);
+    grd.addColorStop(1, `rgba(180,140,255,0)`);
+    ctx.beginPath();
+    ctx.arc(c.x, c.y - scrollOff * 0.05, 6, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    return true;
+  });
+
+  requestAnimationFrame(drawFrame);
+}
+
+/* ─── SCROLL ENGINE ─── */
+const section  = document.getElementById('timeline');
+const spineDrawn = document.getElementById('spineDrawn');
+const spineNib   = document.getElementById('spineNib');
+const nodes = document.querySelectorAll('[data-node]');
+const cards = document.querySelectorAll('[data-card]');
+const yearFloats = document.querySelectorAll('.year-float');
+const activated = new Set();
+let ticking = false;
+
+function update() {
+  ticking = false;
+  scrollY = window.scrollY;
+  const winH = window.innerHeight;
+  const secTop = section.offsetTop;
+  const secH   = section.offsetHeight;
+  const viewBottom = scrollY + winH;
+
+  const progress = Math.max(0, Math.min(1, (viewBottom - secTop) / (secH + winH * 0.5)));
+  const drawnH = progress * secH;
+  spineDrawn.style.height = drawnH + 'px';
+  spineNib.style.top = drawnH + 'px';
+  spineNib.style.opacity = (progress > 0 && progress < 0.98) ? '1' : '0';
+
+  nodes.forEach((node, i) => {
+    const nr = node.getBoundingClientRect();
+    const nibY = spineNib.getBoundingClientRect().top + 10;
+    if (nibY >= nr.top + nr.height / 2 && !activated.has(i)) {
+      activated.add(i);
+      node.classList.add('active');
+      const pulse = node.querySelector('.node-pulse');
+      pulse.style.animation = 'none';
+      pulse.offsetHeight;
+      pulse.style.animation = '';
+    }
+  });
+
+  cards.forEach(card => {
+    if (card.getBoundingClientRect().top < winH * 0.82) card.classList.add('arrived');
+  });
+
+  yearFloats.forEach(yf => {
+    const r = yf.closest('.milestone').getBoundingClientRect();
+    yf.style.transform = `translateY(${((r.top + r.height / 2) - winH / 2) * 0.06}px)`;
+  });
+}
+
+window.addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } }, { passive: true });
+window.addEventListener('resize', () => { resize(); initStars(); update(); });
+
+/* ─── INIT ─── */
+resize();
+initStars();
+update();
+requestAnimationFrame(drawFrame);
+</script>
+</body>
+</html>

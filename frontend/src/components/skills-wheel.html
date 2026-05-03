@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Skills Showcase</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#7C6AFA;
+  --accent-rgb:124,106,250;
+  --accent-glow:rgba(124,106,250,0.4);
+  --bg:#050508;
+  --card-back-bg:rgba(255,255,255,0.04);
+  --card-border:rgba(255,255,255,0.10);
+  --card-radius:20px;
+  --card-w:clamp(150px,20vw,230px);
+  --card-h:clamp(190px,26vw,285px);
+  --circle-radius:clamp(180px,26vw,310px);
+  --text-primary:rgba(255,255,255,0.95);
+  --text-secondary:rgba(255,255,255,0.40);
+  --text-ghost:rgba(255,255,255,0.06);
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth:cubic-bezier(0.23,1,0.32,1);
+}
+html{scroll-behavior:auto}
+body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ── SECTION HEADING ── */
+.skills-heading{padding:120px 5vw 60px;position:relative;z-index:1}
+.eyebrow{font-size:.8rem;font-weight:400;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;opacity:0;animation:fadeUp .8s .2s forwards}
+.main-heading{font-size:clamp(3rem,10vw,8rem);font-weight:900;letter-spacing:-.04em;line-height:.95;background:linear-gradient(135deg,#fff 30%,rgba(var(--accent-rgb),.7) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;opacity:0;animation:fadeUp .8s .4s forwards}
+.subtext{font-size:1rem;font-weight:300;color:rgba(255,255,255,.4);font-style:italic;margin-top:1rem;opacity:0;animation:fadeUp .8s .6s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SCROLL WRAPPER ── */
+#skills-outer{height:400vh;position:relative}
+
+/* ── STICKY STAGE ── */
+#skills-stage{
+  position:sticky;top:0;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:radial-gradient(ellipse 60vw 60vw at 50% 50%,rgba(var(--accent-rgb),.06) 0%,transparent 70%);
+}
+
+/* ── CIRCLE CONTAINER ── */
+#circle-wrap{
+  position:relative;
+  width:calc(var(--circle-radius)*2 + var(--card-w));
+  height:calc(var(--circle-radius)*2 + var(--card-h));
+  display:flex;align-items:center;justify-content:center;
+  perspective:1200px;
+}
+
+/* ── CENTER STAR ── */
+#center-orb{
+  position:absolute;
+  width:90px;height:90px;
+  transform:scale(0) rotate(0deg);
+  transition:transform .7s var(--ease-spring);
+  z-index:4;
+  display:flex;align-items:center;justify-content:center;
+}
+#center-orb.visible{
+  transform:scale(1) rotate(0deg);
+  animation:starSpin 12s linear infinite, starPulse 3s ease-in-out infinite;
+}
+@keyframes starSpin{to{transform:scale(1) rotate(360deg)}}
+@keyframes starPulse{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(var(--accent-rgb),0.8)) drop-shadow(0 0 16px rgba(var(--accent-rgb),0.4));}
+  50%{filter:drop-shadow(0 0 18px rgba(var(--accent-rgb),1)) drop-shadow(0 0 40px rgba(var(--accent-rgb),0.7)) drop-shadow(0 0 70px rgba(255,255,255,0.25));}
+}
+#center-orb svg{width:90px;height:90px;overflow:visible}
+
+/* ── CARD BASE ── */
+.skill-card{
+  position:absolute;
+  width:var(--card-w);
+  height:var(--card-h);
+  transform-style:preserve-3d;
+  cursor:pointer;
+  will-change:transform;
+}
+.skill-card .face{
+  position:absolute;inset:0;
+  border-radius:var(--card-radius);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+/* ── BACK FACE ── */
+.card-back{
+  background:var(--card-back-bg);
+  border:1px solid var(--card-border);
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.08) inset;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.card-back::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 30% 40%,rgba(var(--accent-rgb),.07) 0%,transparent 50%),
+    repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,255,255,.015) 8px,rgba(255,255,255,.015) 9px);
+}
+.card-back-mark{
+  width:48px;height:48px;opacity:.22;
+  position:relative;z-index:1;
+  color:#fff;
+}
+.card-back-mark svg{width:100%;height:100%}
+
+/* ── FRONT FACE ── */
+.card-front{
+  transform:rotateY(180deg);
+  display:flex;flex-direction:column;
+  padding:clamp(14px,3vw,22px);
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+}
+.card-front::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
+.card-front::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.4;pointer-events:none;
+}
+.skill-icon{
+  width:clamp(36px,6vw,52px);
+  height:clamp(36px,6vw,52px);
+  margin-bottom:.6rem;
+  filter:drop-shadow(0 0 8px rgba(var(--accent-rgb),.5));
+  position:relative;z-index:1;
+  flex-shrink:0;
+}
+.skill-icon svg{width:100%;height:100%}
+.skill-name{
+  font-size:clamp(.85rem,2vw,1.25rem);
+  font-weight:800;letter-spacing:-.02em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.95);
+  position:relative;z-index:1;
+  margin-bottom:.35rem;
+  flex:1;
+}
+.skill-level{
+  font-size:.65rem;font-weight:300;
+  letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);
+  text-align:right;
+  margin-bottom:.35rem;
+  position:relative;z-index:1;
+}
+.bar-track{
+  width:100%;height:3px;
+  background:rgba(255,255,255,.08);
+  border-radius:2px;
+  overflow:hidden;
+  position:relative;z-index:1;
+}
+.bar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,rgba(var(--accent-rgb),.5),var(--accent));
+  border-radius:2px;
+  transform-origin:left;
+  transition:width 800ms cubic-bezier(.23,1,.32,1);
+}
+.skill-xp{
+  font-size:.7rem;font-weight:300;
+  font-family:monospace;
+  color:rgba(255,255,255,.28);
+  margin-top:.5rem;
+  position:relative;z-index:1;
+}
+
+/* ── CARD FLIP STATE ── */
+.skill-card.flipped{transform-style:preserve-3d}
+
+/* ── HOVER TOOLTIP ── */
+.card-tooltip{
+  position:absolute;bottom:calc(100% + 10px);left:50%;
+  transform:translateX(-50%);
+  background:rgba(20,18,40,.85);
+  border:1px solid rgba(var(--accent-rgb),.3);
+  backdrop-filter:blur(8px);
+  color:rgba(255,255,255,.7);
+  font-size:.65rem;letter-spacing:.08em;
+  padding:5px 12px;border-radius:20px;
+  white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s ease;
+  z-index:10;
+}
+.skill-card:hover .card-tooltip{opacity:1}
+
+/* ── IDLE FLOAT ── */
+.stack-float{animation:stackFloat 3s ease-in-out infinite}
+@keyframes stackFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+
+/* ── SCROLL HINT ── */
+#scroll-hint{
+  position:absolute;bottom:2.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  transition:opacity .4s ease;z-index:5;
+}
+#scroll-hint.hidden{opacity:0;pointer-events:none}
+.hint-text{
+  font-size:.75rem;font-weight:300;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:transparent;position:relative;overflow:hidden;
+}
+.hint-text::before{content:'scroll to reveal';position:absolute;inset:0;color:rgba(255,255,255,.3)}
+.hint-text::after{
+  content:'scroll to reveal';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.9),#fff,rgba(var(--accent-rgb),.9),transparent);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%;
+  animation:shimmer 2.8s ease-in-out infinite;
+}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-40% center}}
+.hint-mouse{
+  width:22px;height:34px;
+  border:1.5px solid rgba(255,255,255,.2);
+  border-radius:12px;position:relative;
+  display:flex;justify-content:center;
+}
+.hint-mouse::after{
+  content:'';width:3px;height:7px;
+  background:rgba(var(--accent-rgb),.9);
+  border-radius:2px;position:absolute;top:6px;
+  animation:wheel 1.8s ease-in-out infinite;
+  box-shadow:0 0 6px rgba(var(--accent-rgb),.8);
+}
+@keyframes wheel{0%{top:6px;opacity:1}60%{top:16px;opacity:.2}61%{top:6px;opacity:0}100%{top:6px;opacity:1}}
+.hint-chevrons{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hint-chevrons span{
+  display:block;width:10px;height:10px;
+  border-right:1.5px solid rgba(var(--accent-rgb),.8);
+  border-bottom:1.5px solid rgba(var(--accent-rgb),.8);
+  transform:rotate(45deg);
+  animation:chev 1.8s ease-in-out infinite;
+}
+.hint-chevrons span:nth-child(1){animation-delay:0s}
+.hint-chevrons span:nth-child(2){animation-delay:.2s}
+.hint-chevrons span:nth-child(3){animation-delay:.4s}
+@keyframes chev{0%,100%{opacity:.15}50%{opacity:.9}}
+
+/* ── COMPLETION TEXT ── */
+#completion-text{
+  position:absolute;bottom:3.5rem;
+  font-size:.9rem;font-weight:300;font-style:italic;
+  color:rgba(255,255,255,.35);letter-spacing:.04em;
+  opacity:0;transition:opacity .8s ease;
+  pointer-events:none;text-align:center;
+}
+#completion-text.visible{opacity:1}
+
+/* ── SPACER ── */
+.after-spacer{height:60px}
+
+@media(max-width:600px){
+  :root{
+    --card-w:clamp(110px,28vw,155px);
+    --card-h:clamp(140px,35vw,195px);
+    --circle-radius:clamp(140px,38vw,180px);
+  }
+  .skill-level{display:none}
+  .skill-name{font-size:.75rem}
+  .skill-icon{font-size:1.5rem}
+  .stack-float{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="skills-heading">
+  <p class="eyebrow">What I bring to the table</p>
+  <h2 class="main-heading">My Skills</h2>
+  <p class="subtext">Scroll to unpack the deck.</p>
+</div>
+
+<div id="skills-outer">
+  <div id="skills-stage">
+    <div id="circle-wrap">
+      <div id="center-orb">
+    <svg viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="starGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity="1"/>
+          <stop offset="35%"  stop-color="rgba(var(--accent-rgb),1)" stop-opacity="1"/>
+          <stop offset="100%" stop-color="rgba(var(--accent-rgb),0)" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#c4baff"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Outer long 4-point star (rotated 45° creates 8-point illusion) -->
+      <polygon
+        points="0,-38 3.5,-3.5 38,0 3.5,3.5 0,38 -3.5,3.5 -38,0 -3.5,-3.5"
+        fill="url(#starGrad)" opacity="0.9"/>
+
+      <!-- Secondary 4-point star rotated 45° -->
+      <polygon
+        points="0,-28 2.5,-2.5 28,0 2.5,2.5 0,28 -2.5,2.5 -28,0 -2.5,-2.5"
+        fill="url(#starGrad)" opacity="0.6" transform="rotate(45)"/>
+
+      <!-- Thin needle rays for sparkle -->
+      <line x1="0" y1="-44" x2="0" y2="44"  stroke="rgba(255,255,255,0.18)" stroke-width="0.6"/>
+      <line x1="-44" y1="0" x2="44" y2="0"  stroke="rgba(255,255,255,0.18)" stroke-width="0.6"/>
+      <line x1="-31" y1="-31" x2="31" y2="31" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+      <line x1="31" y1="-31" x2="-31" y2="31" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+
+      <!-- Bright core -->
+      <circle cx="0" cy="0" r="5" fill="url(#coreGrad)"/>
+      <circle cx="0" cy="0" r="2.5" fill="white"/>
+    </svg>
+  </div>
+      <div id="cards-container"></div>
+    </div>
+    <div id="scroll-hint">
+      <div class="hint-text">scroll to reveal</div>
+      <div class="hint-mouse"></div>
+      <div class="hint-chevrons"><span></span><span></span><span></span></div>
+    </div>
+    <div id="completion-text">8 skills.&nbsp; Countless possibilities.</div>
+  </div>
+</div>
+
+<div class="after-spacer"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────
+const CFG = {
+  CARD_COUNT:    8,
+  PHASE1_END:    0.33,
+  PHASE3_START:  0.33,
+  CARD_DELAY:    0.06,
+  FLIP_DUR_MS:   600,
+  BAR_DELAY_MS:  400,
+  MOBILE_BP:     600,
+};
+
+const SKILLS = [
+  {
+    name:'UI Design', xp:'6 yrs', level:'Expert', bar:95,
+    grad:'linear-gradient(135deg,#1a1a2e,#16213e)',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3"/>
+      <path d="M3 9h18M9 21V9"/>
+      <circle cx="16" cy="15" r="2" fill="currentColor" stroke="none"/>
+    </svg>`
+  },
+  {
+    name:'React', xp:'5 yrs', level:'Expert', bar:92,
+    grad:'linear-gradient(135deg,#0d1b2a,#0e2d40)',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="#61DAFB" stroke-width="1.4">
+      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(0 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
+      <circle cx="12" cy="12" r="1.8" fill="#61DAFB" stroke="none"/>
+    </svg>`
+  },
+  {
+    name:'Three.js', xp:'3 yrs', level:'Advanced', bar:80,
+    grad:'linear-gradient(135deg,#111,#1e1e2e)',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12,2 22,20 2,20" fill="rgba(255,255,255,0.08)" stroke="white" stroke-width="1.4"/>
+      <polygon points="12,7 18,18 6,18" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      <polygon points="12,11 15.5,17 8.5,17" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+    </svg>`
+  },
+  {
+    name:'Motion', xp:'4 yrs', level:'Advanced', bar:85,
+    grad:'linear-gradient(135deg,#0a2e1a,#1b6940)',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14" stroke="#4ade80" stroke-width="1.8"/>
+      <path d="M5 7 Q9 7 12 12 Q15 17 19 17" stroke="rgba(74,222,128,0.5)" stroke-width="1.4"/>
+      <path d="M15 8l4 4-4 4" stroke="#4ade80" stroke-width="1.8"/>
+      <circle cx="5" cy="12" r="2" fill="#4ade80"/>
+      <circle cx="19" cy="12" r="2" fill="#4ade80"/>
+    </svg>`
+  },
+  {
+    name:'TypeScript', xp:'4 yrs', level:'Expert', bar:88,
+    grad:'linear-gradient(135deg,#1a2744,#1e3a5f)',
+    icon:`<svg viewBox="0 0 24 24">
+      <rect x="2" y="2" width="20" height="20" rx="3" fill="#3178C6"/>
+      <text x="4.5" y="15.5" font-family="monospace" font-weight="700" font-size="8" fill="white">TS</text>
+    </svg>`
+  },
+  {
+    name:'WebGL', xp:'2 yrs', level:'Proficient', bar:68,
+    grad:'linear-gradient(135deg,#2e0a1a,#691b3d)',
+    icon:`<svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" fill="rgba(255,100,150,0.3)" stroke="#ff6496" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="M2 17l10 5 10-5" stroke="#ff6496" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M2 12l10 5 10-5" stroke="rgba(255,100,150,0.5)" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    name:'Branding', xp:'5 yrs', level:'Expert', bar:90,
+    grad:'linear-gradient(135deg,#0a1a2e,#1b3d69)',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M9 12l2 2 4-4"/>
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>
+      <circle cx="12" cy="12" r="2" fill="#60a5fa" stroke="none"/>
+    </svg>`
+  },
+  {
+    name:'Node.js', xp:'3 yrs', level:'Advanced', bar:76,
+    grad:'linear-gradient(135deg,#0a2010,#1a4020)',
+    icon:`<svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" fill="rgba(104,197,68,0.15)" stroke="#68c544" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M12 6v6l5 3" stroke="#68c544" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="12" cy="12" r="2" fill="#68c544"/>
+    </svg>`
+  },
+];
+
+// ─── STATE ────────────────────────────────────────────────────
+const S = {
+  scrollY:0, progress:0, p1:0, p3:0,
+  sectionTop:0, scrollDist:0,
+  flipped: new Array(CFG.CARD_COUNT).fill(false),
+  allFlipped: false,
+  cardEls: [],
+  barEls:  [],
+  floatActive: true,
+};
+
+// ─── HELPERS ──────────────────────────────────────────────────
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const lerp  = (a,b,t) => a+(b-a)*t;
+function easeInOutCubic(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+function easedSub(global, delay, span){
+  return easeInOutCubic(clamp((global-delay)/span,0,1));
+}
+function easeOutCubic(t){return 1-Math.pow(1-t,3)}
+
+// ─── DOM BUILD ────────────────────────────────────────────────
+const container = document.getElementById('cards-container');
+container.style.cssText='position:absolute;inset:0;';
+
+SKILLS.forEach((sk,i)=>{
+  const card = document.createElement('div');
+  card.className='skill-card';
+  card.dataset.index=i;
+
+  const back=document.createElement('div');
+  back.className='face card-back';
+  back.innerHTML=`<div class="card-back-mark">${sk.icon}</div>`;
+
+  const tip=document.createElement('div');
+  tip.className='card-tooltip';
+  tip.textContent='scroll to reveal →';
+  back.appendChild(tip);
+
+  const front=document.createElement('div');
+  front.className='face card-front';
+  front.style.background=sk.grad;
+  front.innerHTML=`
+    <div class="skill-icon">${sk.icon}</div>
+    <div class="skill-name">${sk.name}</div>
+    <div class="skill-level">${sk.level}</div>
+    <div class="bar-track"><div class="bar-fill" data-target="${sk.bar}"></div></div>
+    <div class="skill-xp">${sk.xp}</div>`;
+
+  card.appendChild(back);
+  card.appendChild(front);
+  container.appendChild(card);
+  S.cardEls.push(card);
+  S.barEls.push(front.querySelector('.bar-fill'));
+});
+
+// ─── INTERACTIONS ─────────────────────────────────────────────
+S.cardEls.forEach((card,i)=>{
+  card.addEventListener('mouseenter',()=>{
+    if(S.p1 < 0.5) return;
+    if(!S.flipped[i]){
+      card.style.transition='box-shadow .2s ease';
+      card.style.boxShadow=`0 0 30px rgba(var(--accent-rgb),.35)`;
+    } else {
+      S.cardEls.forEach((c,j)=>{if(j!==i) c.style.opacity='0.65'});
+    }
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.boxShadow='';
+    S.cardEls.forEach(c=>c.style.opacity='1');
+  });
+  card.addEventListener('click',()=>{
+    if(!S.flipped[i]) return;
+    const inner=card.querySelector('.card-back');
+    card.style.transition=`transform .3s ease`;
+    card.style.transform = card.style.transform.replace(/rotateY\([^)]*\)/,'') + ' rotateY(0deg)';
+    setTimeout(()=>{
+      card.style.transition=`transform .3s ease`;
+      card.style.transform = card.style.transform.replace(/rotateY\([^)]*\)/,'') + ' rotateY(180deg)';
+    },320);
+  });
+});
+
+// ─── MEASURE ──────────────────────────────────────────────────
+function measure(){
+  const outer=document.getElementById('skills-outer');
+  const r=outer.getBoundingClientRect();
+  S.sectionTop  = r.top + window.scrollY;
+  S.scrollDist  = outer.offsetHeight - window.innerHeight;
+}
+
+// ─── PHASE HELPERS ────────────────────────────────────────────
+function getRadius(){
+  const w=window.innerWidth;
+  if(w<=600) return clamp(150,0.38*w,190);
+  if(w<=900) return clamp(180,0.28*w,260);
+  return clamp(200,0.26*window.innerWidth,310);
+}
+
+function setStackTransforms(animate){
+  const center=document.getElementById('circle-wrap');
+  const cw=center.offsetWidth/2, ch=center.offsetHeight/2;
+  S.cardEls.forEach((card,i)=>{
+    const rot = (i%2===0?1:-1)*i*1.5;
+    const ty  = i*5;
+    const sc  = 1-i*0.02;
+    card.style.transform=`translate(${cw - parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-w'))/2}px, ${ch - parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-h'))/2 + ty}px) rotate(${rot}deg) scale(${sc})`;
+    card.style.zIndex = CFG.CARD_COUNT-i;
+  });
+}
+
+// ─── SCROLL ENGINE ────────────────────────────────────────────
+let rafId=null;
+function tick(ts){
+  S.scrollY=window.scrollY;
+  S.progress=clamp((S.scrollY-S.sectionTop)/S.scrollDist,0,1);
+  S.p1=clamp(S.progress/CFG.PHASE1_END,0,1);
+  S.p3=clamp((S.progress-CFG.PHASE3_START)/0.67,0,1);
+
+  // Activate orbit once bloom is ~90% complete
+  if(S.p1 > 0.92 && !orbitActive){
+    orbitActive = true;
+    lastOrbTime = ts;
+  }
+  if(S.p1 < 0.85 && orbitActive){
+    orbitActive = false;
+  }
+
+  if(orbitActive){
+    updateOrbit(ts);
+  } else {
+    updateStackToCircle(S.p1);
+  }
+
+  updateCardReveals(S.p3);
+  updateScrollHint(S.progress);
+  updateCenterOrb(S.p1);
+  updateFloatClass(S.progress);
+
+  rafId=requestAnimationFrame(tick);
+}
+
+function updateFloatClass(p){
+  const wrap=document.getElementById('circle-wrap');
+  if(p < 0.02) {
+    if(!S.floatActive){S.floatActive=true;wrap.classList.add('stack-float')}
+  } else {
+    if(S.floatActive){S.floatActive=false;wrap.classList.remove('stack-float')}
+  }
+}
+
+function updateScrollHint(p){
+  const el=document.getElementById('scroll-hint');
+  if(p>0.05) el.classList.add('hidden'); else el.classList.remove('hidden');
+}
+
+function updateCenterOrb(t){
+  const orb=document.getElementById('center-orb');
+  if(t>0.8) orb.classList.add('visible'); else orb.classList.remove('visible');
+}
+
+function updateStackToCircle(t){
+  const R = getRadius();
+  const wrap=document.getElementById('circle-wrap');
+  const cw=wrap.offsetWidth/2;
+  const ch=wrap.offsetHeight/2;
+  const cardW = S.cardEls[0].offsetWidth  || 200;
+  const cardH = S.cardEls[0].offsetHeight || 250;
+
+  S.cardEls.forEach((card,i)=>{
+    const delay  = i * CFG.CARD_DELAY;
+    const cardT  = easedSub(t, delay, 0.85);
+
+    const angle  = (i/CFG.CARD_COUNT)*Math.PI*2 - Math.PI/2;
+    const txTarget = Math.cos(angle)*R;
+    const tyTarget = Math.sin(angle)*R;
+
+    // Overshoot arc: 10% beyond radius at midpoint
+    const overshoot = 1 + (1-Math.abs(cardT*2-1))*0.1;
+
+    const tx = lerp(0, txTarget*overshoot, cardT);
+    const ty = lerp(i*5, tyTarget*overshoot, cardT);
+    const stackRot = (i%2===0?1:-1)*i*1.5;
+    const circleRot = (angle*180/Math.PI)+90;
+    const rot = lerp(stackRot, circleRot, cardT);
+    const sc  = lerp(1-i*0.02, 1, cardT);
+
+    // Settle bounce at the end
+    const settle = t > 0.9 ? 1+(1-easeOutCubic((t-0.9)/0.1))*0.04 : 1;
+
+    const baseX = cw - cardW/2;
+    const baseY = ch - cardH/2;
+
+    if(!S.flipped[i]){
+      card.style.transform=`translate(${baseX+tx}px,${baseY+ty}px) rotate(${rot}deg) scale(${sc*settle})`;
+    } else {
+      card.style.transform=`translate(${baseX+tx}px,${baseY+ty}px) rotate(${rot}deg) scale(${sc*settle}) rotateY(180deg)`;
+    }
+    card.style.zIndex=Math.round((1-cardT)*10) + (S.flipped[i]?20:0);
+  });
+}
+
+function updateCardReveals(t){
+  if(S.allFlipped) return;
+  let all=true;
+  S.cardEls.forEach((card,i)=>{
+    const threshold=i/CFG.CARD_COUNT;
+    if(t>=threshold && !S.flipped[i]){
+      S.flipped[i]=true;
+      flipCard(card,i);
+    }
+    if(!S.flipped[i]) all=false;
+  });
+  if(all && !S.allFlipped){
+    S.allFlipped=true;
+    document.getElementById('completion-text').classList.add('visible');
+  }
+}
+
+function flipCard(card,i){
+  const wrap=document.getElementById('circle-wrap');
+  const cw=wrap.offsetWidth/2;
+  const ch=wrap.offsetHeight/2;
+  const cardW=card.offsetWidth||200;
+  const cardH=card.offsetHeight||250;
+  const R=getRadius();
+  const angle=(i/CFG.CARD_COUNT)*Math.PI*2-Math.PI/2;
+  const tx=Math.cos(angle)*R;
+  const ty=Math.sin(angle)*R;
+  const rot=(angle*180/Math.PI)+90;
+
+  card.style.transition=`transform ${CFG.FLIP_DUR_MS}ms var(--ease-spring)`;
+  card.style.transform=`translate(${cw-cardW/2+tx}px,${ch-cardH/2+ty}px) rotate(${rot}deg) scale(1.12) rotateY(90deg)`;
+
+  setTimeout(()=>{
+    card.style.transform=`translate(${cw-cardW/2+tx}px,${ch-cardH/2+ty}px) rotate(${rot}deg) scale(1) rotateY(180deg)`;
+    animateBar(card,i);
+  }, CFG.FLIP_DUR_MS/2);
+}
+
+function animateBar(card,i){
+  setTimeout(()=>{
+    const bar=card.querySelector('.bar-fill');
+    if(bar) bar.style.width=bar.dataset.target+'%';
+  }, CFG.BAR_DELAY_MS);
+}
+
+// ─── ORBIT ANIMATION ──────────────────────────────────────────
+let orbitAngle = 0;
+let orbitActive = false;
+let lastOrbTime = 0;
+
+function updateOrbit(ts){
+  if(!orbitActive) return;
+  const dt = ts - lastOrbTime;
+  lastOrbTime = ts;
+  orbitAngle += dt * 0.00018; // slow orbit speed (rad/ms)
+
+  const wrap = document.getElementById('circle-wrap');
+  const cw = wrap.offsetWidth/2;
+  const ch = wrap.offsetHeight/2;
+  const R  = getRadius();
+
+  S.cardEls.forEach((card,i)=>{
+    const cardW = card.offsetWidth  || 200;
+    const cardH = card.offsetHeight || 250;
+    const baseAngle = (i/CFG.CARD_COUNT)*Math.PI*2 - Math.PI/2;
+    const a = baseAngle + orbitAngle;
+
+    // Individual bob: each card bobs at its own phase
+    const bobY = Math.sin(Date.now()*0.001 + i*0.9) * 7;
+    const bobS = 1 + Math.sin(Date.now()*0.0008 + i*1.1) * 0.025;
+
+    const tx = Math.cos(a)*R;
+    const ty = Math.sin(a)*R + bobY;
+    const rot = (a*180/Math.PI)+90;
+
+    const rotY = S.flipped[i] ? 'rotateY(180deg)' : '';
+    card.style.transition = 'none';
+    card.style.transform = `translate(${cw-cardW/2+tx}px,${ch-cardH/2+ty}px) rotate(${rot}deg) scale(${bobS}) ${rotY}`;
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+function init(){
+  measure();
+  // Pre-position cards in stack
+  const wrap=document.getElementById('circle-wrap');
+  const cw=wrap.offsetWidth/2;
+  const ch=wrap.offsetHeight/2;
+  S.cardEls.forEach((card,i)=>{
+    const cardW=card.offsetWidth||200;
+    const cardH=card.offsetHeight||250;
+    const rot=(i%2===0?1:-1)*i*1.5;
+    card.style.transform=`translate(${cw-cardW/2}px,${ch-cardH/2+i*5}px) rotate(${rot}deg) scale(${1-i*0.02})`;
+    card.style.zIndex=CFG.CARD_COUNT-i;
+  });
+  document.getElementById('circle-wrap').classList.add('stack-float');
+  tick();
+}
+
+window.addEventListener('scroll',()=>{ S.scrollY=window.scrollY; },{passive:true});
+const ro=new ResizeObserver(()=>{ measure(); });
+ro.observe(document.getElementById('skills-outer'));
+
+window.addEventListener('load',init);
+</script>
+</body>
+</html>
