@@ -11,16 +11,21 @@ const navLinks = [
 ]
 
 export function Navbar() {
+  const handleLogoClick = () => {
+    window.location.href = '/#home'
+  }
+
   return (
     <nav className="relative z-10 w-full">
       <div className="flex flex-row justify-between items-center px-8 py-6 max-w-7xl mx-auto w-full">
         {/* Logo */}
-        <div
-          className="text-3xl tracking-tight text-foreground select-none"
+        <button
+          onClick={handleLogoClick}
+          className="text-3xl tracking-tight text-foreground select-none cursor-pointer hover:opacity-80 transition-opacity"
           style={{ fontFamily: "'Instrument Serif', serif" }}
         >
           Atisheel
-        </div>
+        </button>
 
         {/* Nav links — hidden on mobile */}
         <div className="hidden md:flex flex-row items-center gap-7">

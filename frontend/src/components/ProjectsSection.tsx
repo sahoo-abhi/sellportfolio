@@ -1,7 +1,6 @@
 
 import { useRef, useState } from 'react'
 import { motion, useScroll, useTransform, cubicBezier } from 'framer-motion'
-import { FadeIn } from './FadeIn'
 
 const PROJECTS = [
   {
@@ -290,17 +289,28 @@ function ProjectCard({
 
 export function ProjectsSection() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
+  })
+
+  const { scrollYProgress: sectionProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
   })
 
   const titleScale = useTransform(scrollYProgress, [0, 0.1], [1, 1.08])
   const titleY = useTransform(scrollYProgress, [0, 0.1], [0, -30])
   const bgOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 0.05])
 
+  // Letter-by-letter animation for heading
+  const headingText = 'Project'
+  const letters = headingText.split('')
+
   return (
     <section
+      ref={sectionRef}
       className="bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 relative z-10 px-5 sm:px-8 md:px-10 pt-20 sm:pt-24 md:pt-32 pb-20 font-kanit overflow-hidden"
     >
       {/* Animated background glow */}
@@ -313,14 +323,34 @@ export function ProjectsSection() {
       />
 
       <motion.div style={{ scale: titleScale, y: titleY }}>
-        <FadeIn y={30} delay={0}>
-          <h2
-            className="hero-heading font-black uppercase text-center leading-none tracking-tight mb-16 sm:mb-20 md:mb-24"
-            style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
-          >
-            Project
-          </h2>
-        </FadeIn>
+        <div
+          className="font-black uppercase text-center leading-none tracking-tight mb-16 sm:mb-20 md:mb-24 flex justify-center flex-wrap"
+          style={{ 
+            fontSize: 'clamp(3rem, 12vw, 160px)',
+            fontFamily: "'Instrument Serif', serif",
+            letterSpacing: '-0.0615em',
+          }}
+        >
+          {letters.map((letter, i) => {
+            const letterProgress = useTransform(
+              sectionProgress,
+              [0.02 + i * 0.01, 0.15 + i * 0.01],
+              [0, 1]
+            )
+            return (
+              <motion.span
+                key={i}
+                style={{
+                  opacity: letterProgress,
+                  x: useTransform(letterProgress, [0, 1], [-50, 0]),
+                }}
+                className="inline-block"
+              >
+                {letter}
+              </motion.span>
+            )
+          })}
+        </div>
       </motion.div>
 
       <div ref={containerRef} className="relative">

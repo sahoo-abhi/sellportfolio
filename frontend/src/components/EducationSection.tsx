@@ -52,8 +52,8 @@ export function EducationSection() {
 
       if (spineDrawnRef.current && spineNibRef.current) {
         const st = document.getElementById('timeline')?.getBoundingClientRect().top || 0
-        const prog = Math.max(0, Math.min(1, (wh - st) / (wh + document.getElementById('timeline')?.clientHeight || 0)))
         const timelineHeight = document.getElementById('timeline')?.clientHeight || 1
+        const prog = Math.max(0, Math.min(1, (wh - st) / (wh + timelineHeight)))
         const spineHeight = timelineHeight * prog
 
         spineDrawnRef.current.style.height = `${spineHeight}px`
@@ -522,7 +522,7 @@ export function EducationSection() {
         /* ── FOOTER ── */
         .timeline-end {
           text-align: center;
-          padding: 4rem 2rem 8rem;
+          padding: 4rem 2rem 0;
           color: var(--text-muted);
           font-size: 0.875rem;
           letter-spacing: 0.1em;

@@ -3,8 +3,16 @@ interface ContactButtonProps {
 }
 
 export function ContactButton({ label = 'Contact Me' }: ContactButtonProps) {
+  const handleClick = () => {
+    const contactSection = document.getElementById('contact')
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   return (
     <button
+      onClick={handleClick}
       className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-xs sm:text-sm md:text-base font-medium uppercase tracking-widest text-white font-kanit transition-opacity duration-200 hover:opacity-90"
       style={{
         background:
